@@ -1,0 +1,6 @@
+{
+    "require": {
+        "aoberoi/json-works": "^1.0",
+        "monolog/monolog": "^1.17"
+    }
+}
