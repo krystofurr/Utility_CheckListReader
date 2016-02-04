@@ -1,5 +1,5 @@
-
-<!--
+<?php
+/*
 
 .o88b. db   db d88888b  .o88b. db   dD db      d888888b .d8888. d888888b      .88b  d88.  .d8b.  d8b   db  .d8b.   d888b  d88888b d8888b.
 d8P  Y8 88   88 88'     d8P  Y8 88 ,8P' 88        `88'   88'  YP `~~88~~'      88'YbdP`88 d8' `8b 888o  88 d8' `8b 88' Y8b 88'     88  `8D
@@ -13,9 +13,7 @@ Date: Jan 23rd, 2016
 
 http://stackoverflow.com/questions/2904131/what-is-the-difference-between-json-and-object-literal-notation
 
--->
-
-<?php
+*/
 
 require __DIR__ . '/vendor/autoload.php';
 
@@ -23,6 +21,7 @@ class CheckListManager {
 
     private $listTypes;                 # An array that holds the type of lists in the JSON file
     private $listType;                  # The current list type
+    private $rootTypes;                 # The current root level list from the JSON file
     private $jsonFile;                  # Holds the filename of the JSON file
     private $jsonArray;                 # Holds the JSON data as an associative array
     private $sectionHeader;             # Holds the current section name ' String '
@@ -33,6 +32,8 @@ class CheckListManager {
     public function __construct()
     {
         $this->debug = false;
+        $this->rootTypes = array('l0' => 'BE', 'l1' => 'SD', 'l2' => 'ID', 'l3' => 'TH',
+                           'l4' => 'FI', 'l5' => 'SA', 'l6' => 'AU');
         $this->listTypes = array('BREAK_AND_ENTER' => 'BE', 'SUDDEN_DEATH' => 'SD', 'IMPAIRED_DRIVING' => 'ID', 'THEFT' => 'TH',
                            'FIRE' => 'FI', 'SEXUAL_ASSAULT' => 'SA', 'ASSAULT' => 'AU');
 
@@ -132,9 +133,54 @@ class CheckListManager {
 
 
 
-    public function addQuestion($list) {
+    public function addQuestion($list, $section, $questionBefore, $questionAfter, $newQuestion) {
 
-        $listType = $this->document->getValue("#/l0/name");
+        $rootLevel = "";
+        // Check what root level is required ( l0, l1, l2, ...)
+        foreach($this->rootTypes as $key => $value) {
+            if($value == $list) {
+                $rootLevel = $key;
+                echo $rootLevel;
+                break;
+            }
+        }
+        // Load the questions from the corresponding section into a new variable
+        $questionArray = $this->jsonArray[$rootLevel]['sections'][$section]['questions'];
+
+
+        // Set a default question structure to be loaded and inserted ( Only for a template )
+        $insertQuestion = $this->jsonArray[l0]['sections'][0]['questions'][0];
+
+        // Load the question with the passed in values
+        $insertQuestion['id'] = $questionBefore + 1;
+        $insertQuestion['output'] = $newQuestion;
+
+
+
+        // Insert the question into the JSON array
+        array_splice($questionArray, $questionBefore, 0, $insertQuestion);
+
+        var_dump($questionArray);
+
+        // array_push($questionArray, $insertQuestion);
+        // // Hold the data in the position for the new array ( ISSUE IS HERE!!! )
+        // $tempArray = $this->jsonArray[$rootLevel]['sections'][$section]['questions'][$questionBefore + 1];
+        // $this->jsonArray[$rootLevel]['sections'][$section]['questions'][$questionBefore + 1] = $insertQuestion;
+
+        // Put the array of altered questions back into the original JSON array ( Reverse of the above )
+        $this->jsonArray[$rootLevel]['setions'][$section]['questions'] = $questionArray;
+
+
+
+
+
+
+        //$listType = $this->document->getValue("#/l0/name");
+        //$this->jsonArray[l0]
+        // $this->jsonArray[Top Level]['sections'][Section Value]['questions'][Question Value]
+        //var_dump($this->jsonArray[l0]['sections'][0]['questions']);
+        //$this->jsonArray[l0]['sections'][0]['questions']
+        //array_splice($input, 3, 0, "purple");
     }
 
     public function deleteQuestion() {
@@ -202,6 +248,7 @@ class CheckListManager {
     public function displaySectionHeaderComboBox($listId) {
 
         ?>
+        <label class="show labelSpacing" for="section" id="labelSectionComboBox">Choose a section:</label>
         <select name="section" id="sectionCombobox">
           <?php
           $sectionHeaders = $this->getSectionHeaders($listId);
@@ -220,18 +267,32 @@ class CheckListManager {
 
     */
     public function displaySectionQuestionsComboBox($sectionHeaderIndex) {
+        $DOT_SPACING = ".....";
 
         ?>
-        <select name="section" id="questionCombobox">
+        <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Between which questions?</label>
+
           <?php
           $sectionQuestions = $this->getSectionQuestions($sectionHeaderIndex);
           foreach($sectionQuestions as $questionId => $question) {
-          ?>
-              <option value="<?php echo $questionId; ?>"><?php echo $question; ?></option>
-          <?php
+              if(strlen($question) >= 50) { $question = substr($question, 0, 50).$DOT_SPACING; }
+
+              $questionCombobox_Before .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
+              $questionCombobox_After .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
+
           }
           ?>
+
+        <select name="questionBefore" id="questionCombobox_Before">
+            <?php echo $questionCombobox_Before; ?>
         </select>
+
+        <select name="questionAfter" id="questionCombobox_After">
+            <?php echo $questionCombobox_After; ?>
+        </select>
+
+        <label class="show" for="questionAdd" id="labelNewQuestion">New Question:</label>
+        <input type="text" name="questionAdd" id="newQuestion" />
         <?php
     }
 

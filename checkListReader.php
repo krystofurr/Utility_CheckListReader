@@ -26,15 +26,25 @@ $CM->initializeJSONData(JSON_FILE);
 ?>
 
 <!DOCTYPE html>
-<html>
+<!-- This class is necessary, in case the user’s browser is running without the JavaScript enabled,
+we can add an appropriate fallback through this class.
+If it does, Modernizr will replace this class with just js. -->
+<html class="no-js">
   <head>
     <meta charset="utf-8">
     <title>CHECKLIST READER</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen" title="no title" charset="utf-8">
     <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+
+    <!-- Bowser - A browser detector -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bowser/1.0.0/bowser.js"></script>
+
     <script type="text/javascript" src="js/myJs.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" media="screen" title="no title" charset="utf-8">
 
   </head>
   <body>
@@ -59,6 +69,27 @@ $CM->initializeJSONData(JSON_FILE);
             <button class="btn btn-primary" type="button" name="update">Update Question</button>
             <button class="btn btn-danger" type="button" name="delete">Delete Question</button>
 
+            <!-- <div id="parent-list">
+	               <select id="select-1">
+	                      <option value="Test1 Value">test1</option>
+	               </select>
+                   <select id="select-2">
+                       <option value="Test2 Value">test2</option>
+                   </select>
+
+            </div> -->
+            <!-- <div id="parent-list">
+	               <select id="select-1">
+	                      <option value="new combobox">test1</option>
+                          <option value="test2">test2</option>
+                          <option value="test3">test3</option>
+	               </select>
+                   <select id="select-2">
+                       <option value="Test2 Value">test2</option>
+                   </select>
+
+            </div> -->
+
         </div>
     </form>
     <form action="checkListReader.php" method="post">
@@ -75,53 +106,18 @@ $CM->initializeJSONData(JSON_FILE);
                 <h4 class="modal-title">ADD QUESTION</h4>
               </div>
               <div class="modal-body">
-                <select id="listCombobox" name="list">
-                  <?php
-                  foreach($CM->listTypes as $listId => $value) {
-                  ?>
-                      <option value="<?php echo $value; ?>"><?php echo $listId; ?></option>
-                  <?php
-                  }
-                  ?>
-                </select>
-
-                <div id="sectionsCB"></div>
-                <div id="questionsCB"></div>
-
-                <label for="question">What section?</label>
-                <input type="text" name="questionAdd" /></br>
-                <label for="question">At Start?</label>
-                <input type="checkbox" name="start" /></br>
-                <label for="question">At End?</label>
-                <input type="checkbox" name="end" /></br>
-                <label for="question">Between ? and ?</label>
-                <select name="questionStart" id="questionStartCombobox">
-                  <?php
-                      $questions = $CM->getSectionQuestions(1);
-                      foreach($questions as $questionsIndex => $question) {
-                          // If the question is equal to or longer than 50 characters, shorten it
-                          if(strlen($question) >= 50) { $question = substr($question, 0, 50).'.....'; }
-                      ?>
-                        <option value="<?php echo $questionsIndex; ?>"><?php echo ($questionsIndex + 1).". ".$question; ?></option>
-                      <?php
-                      }
-                  ?>
-                </select>
-                AND
-                <select name="questionEnd" id="questionEndCombobox">
-                    <?php
-                        $questions = $CM->getSectionQuestions(0);
-                        foreach($questions as $questionsIndex => $question) {
-                            // If the question is equal to or longer than 50 characters, shorten it
-                            if(strlen($question) >= 50) { $question = substr($question, 0, 50).'.....'; }
-                        ?>
-                            <option value="<?php echo $questionsIndex; ?>"><?php echo ($questionsIndex + 1).". ".$question; ?></option>
-                        <?php
-                        }
-                    ?>
-                </select></br>
-                <label for="question">Enter the question</label>
-                <input type="text" name="questionAdd" />
+                  <div id="comboBoxContainer">
+                        <label for="list">Choose a list type:</label>
+                        <select id="listCombobox" name="list">
+                          <?php
+                          foreach($CM->listTypes as $listId => $value) {
+                          ?>
+                              <option value="<?php echo $value; ?>"><?php echo $listId; ?></option>
+                          <?php
+                          }
+                          ?>
+                        </select>
+                   </div>
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-primary" name="submit">Save</button>
@@ -143,11 +139,10 @@ $CM->initializeJSONData(JSON_FILE);
                 <h4 class="modal-title">UPDATE QUESTION</h4>
               </div>
               <div class="modal-body">
-                <label for="question">Enter the question</label>
-                <input type="text" name="questionAdd" />
+
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" name="submit">Save</button>
+                <button type="submit" class="btn btn-primary" name="submitDelete">Save</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               </div>
             </div>
@@ -166,8 +161,7 @@ $CM->initializeJSONData(JSON_FILE);
                 <h4 class="modal-title">DELETE QUESTION</h4>
               </div>
               <div class="modal-body">
-                <label for="question">Enter the question</label>
-                <input type="text" name="questionAdd" />
+
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-primary" name="submit">Save</button>
@@ -187,7 +181,12 @@ if(isset($_POST['submit'])) {
   $chosenList = $_POST['list'];
 
   if(isset($_POST['questionAdd'])) {
-      $CM->addQuestion($chosenList);
+      echo 'List: '.$chosenList;
+      echo 'Section: '.$_POST['section'];
+      echo 'Question Before Value: '.$_POST['questionBefore'];
+      echo 'Question After Value: '.$_POST['questionAfter'];
+      echo 'New Question: '.$_POST['questionAdd'];
+      $CM->addQuestion($chosenList, $_POST['section'], $_POST['questionBefore'], $_POST['questionAfter'], $_POST['questionAdd']);
   } elseif (isset($_POST['update'])) {
       $CM->updateQuestion($chosenList);
   } elseif(isset($_POST['delete'])) {
