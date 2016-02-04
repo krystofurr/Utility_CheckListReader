@@ -141,7 +141,6 @@ class CheckListManager {
         foreach($this->rootTypes as $key => $value) {
             if($value == $list) {
                 $rootLevel = $key;
-                echo $rootLevel;
                 break;
             }
         }
@@ -184,13 +183,16 @@ class CheckListManager {
         // Put the array of altered questions back into the original JSON array ( Reverse of the above )
         $this->jsonArray[$rootLevel]['sections'][$section]['questions'] = $questionArray;
 
-        var_dump($questionArray);
+        // var_dump($questionArray);
 
         //var_dump($this->jsonArray[$rootLevel]['sections'][$section]['questions']);
 
         // Put the array back into the JSON file and call it 'update.json'
-        $jsonData = json_encode($this->jsonArray);
-        file_put_contents('../update.json', $jsonData);
+        $jsonString = json_encode($this->jsonArray);
+
+        if(!file_put_contents("update.json", $jsonString, FILE_USE_INCLUDE_PATH)) {
+            echo "Could not create a JSON file";
+        }
 
     }
 
