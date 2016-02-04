@@ -19,6 +19,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 class CheckListManager {
 
+
     private $listTypes;                 # An array that holds the type of lists in the JSON file
     private $listType;                  # The current list type
     private $rootTypes;                 # The current root level list from the JSON file
@@ -147,40 +148,50 @@ class CheckListManager {
         // Load the questions from the corresponding section into a new variable
         $questionArray = $this->jsonArray[$rootLevel]['sections'][$section]['questions'];
 
-
-        // Set a default question structure to be loaded and inserted ( Only for a template )
+        // Set a default question structure to be loaded and inserted ( Only used as a template )
         $insertQuestion = $this->jsonArray[l0]['sections'][0]['questions'][0];
 
         // Load the question with the passed in values
         $insertQuestion['id'] = $questionBefore + 1;
         $insertQuestion['output'] = $newQuestion;
 
+        // Insert the question into the JSON array ( Have to define that it is an array in order to insert correctly)
+        array_splice($questionArray, $questionBefore + 1, 0, array($insertQuestion));
 
+        // Update every question Id after the inserted question and increment by 1
 
-        // Insert the question into the JSON array
-        array_splice($questionArray, $questionBefore, 0, $insertQuestion);
+        /*
+            -Have to get the number of elements after the inserted question
+
+                So...get the total count.  Then subtract the value of the index for the question
+                before the inserted question and add 1.  That should give the remaining elements in
+                the question array.
+
+            -Have to loop only through those elements and increment their ID by 1
+
+                Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
+        */
+
+        $totalCount = count($questionArray);
+        $remainingElementCount = $totalCount - ($questionBefore + 1);
+
+        for($i = ($questionAfter + 1); $i <= $remainingElementCount; ++$i) {
+                // echo "</br>Question Before".$questionArray[$i]['id'].'</br>';
+                // echo "</br>Question After".($questionArray[$i]['id'] + 1).'</br>';
+                $questionArray[$i]['id'] = $questionArray[$i]['id'] + 1;
+        }
+
+        // Put the array of altered questions back into the original JSON array ( Reverse of the above )
+        $this->jsonArray[$rootLevel]['sections'][$section]['questions'] = $questionArray;
 
         var_dump($questionArray);
 
-        // array_push($questionArray, $insertQuestion);
-        // // Hold the data in the position for the new array ( ISSUE IS HERE!!! )
-        // $tempArray = $this->jsonArray[$rootLevel]['sections'][$section]['questions'][$questionBefore + 1];
-        // $this->jsonArray[$rootLevel]['sections'][$section]['questions'][$questionBefore + 1] = $insertQuestion;
+        //var_dump($this->jsonArray[$rootLevel]['sections'][$section]['questions']);
 
-        // Put the array of altered questions back into the original JSON array ( Reverse of the above )
-        $this->jsonArray[$rootLevel]['setions'][$section]['questions'] = $questionArray;
+        // Put the array back into the JSON file and call it 'update.json'
+        $jsonData = json_encode($this->jsonArray);
+        file_put_contents('update.json', $jsonData);
 
-
-
-
-
-
-        //$listType = $this->document->getValue("#/l0/name");
-        //$this->jsonArray[l0]
-        // $this->jsonArray[Top Level]['sections'][Section Value]['questions'][Question Value]
-        //var_dump($this->jsonArray[l0]['sections'][0]['questions']);
-        //$this->jsonArray[l0]['sections'][0]['questions']
-        //array_splice($input, 3, 0, "purple");
     }
 
     public function deleteQuestion() {
