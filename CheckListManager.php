@@ -190,7 +190,7 @@ class CheckListManager {
 
         // Put the array back into the JSON file and call it 'update.json'
         $jsonData = json_encode($this->jsonArray);
-        file_put_contents('update.json', $jsonData);
+        file_put_contents('../update.json', $jsonData);
 
     }
 

@@ -181,11 +181,11 @@ if(isset($_POST['submit'])) {
   $chosenList = $_POST['list'];
 
   if(isset($_POST['questionAdd'])) {
-      echo 'List: '.$chosenList;
-      echo 'Section: '.$_POST['section'];
-      echo 'Question Before Value: '.$_POST['questionBefore'];
-      echo 'Question After Value: '.$_POST['questionAfter'];
-      echo 'New Question: '.$_POST['questionAdd'];
+    //   echo 'List: '.$chosenList;
+    //   echo 'Section: '.$_POST['section'];
+    //   echo 'Question Before Value: '.$_POST['questionBefore'];
+    //   echo 'Question After Value: '.$_POST['questionAfter'];
+    //   echo 'New Question: '.$_POST['questionAdd'];
       $CM->addQuestion($chosenList, $_POST['section'], $_POST['questionBefore'], $_POST['questionAfter'], $_POST['questionAdd']);
   } elseif (isset($_POST['update'])) {
       $CM->updateQuestion($chosenList);
