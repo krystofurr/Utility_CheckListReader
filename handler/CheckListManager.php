@@ -33,7 +33,7 @@ class CheckListManager {
     public function __construct()
     {
         require_once('/var/www/html/checkmate/config.php');
-        $this->jsonFileOutput = JSON_FILE_OUTPUT;
+        $this->jsonFileOutput = 'data/'.JSON_FILE_OUTPUT;
         $this->debug = false;
         $this->rootTypes = array('l0' => 'BE', 'l1' => 'SD', 'l2' => 'ID', 'l3' => 'TH',
                            'l4' => 'FI', 'l5' => 'SA', 'l6' => 'AU');
@@ -225,7 +225,7 @@ class CheckListManager {
         $this->resetQuestionIds($questions, $questionToDelete, "decrement");
 
         // Save to a JSON file
-        $this->saveToJson($this->jsonArray, 'update.json', $questions, $section);
+        $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
 
     }
 
@@ -281,7 +281,7 @@ class CheckListManager {
         // Encode the associative array into a JSON string
         $jsonString = json_encode($this->jsonArray);
 
-        if(!file_put_contents(JSON_FILE_OUTPUT, $jsonString, FILE_USE_INCLUDE_PATH)) {
+        if(!file_put_contents($jsonFilename, $jsonString, FILE_USE_INCLUDE_PATH)) {
             echo '<h2 class="text-center">Could not create a JSON file</h2>';
         } else {
             echo '<h2 class="text-center">Updated JSON file successfully</h2>';
