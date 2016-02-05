@@ -1,9 +1,9 @@
 
 <?php
 require_once('../config.php');
-require_once('../CheckListManager.php');
+require_once('../handler/CheckListManager.php');
 $CM = new CheckListManager();
-$CM->initializeJSONData('../'.JSON_FILE);
+$CM->initializeJSONData('../data/'.JSON_FILE);
 
 if(isset($_POST['sectionType'])) {
     echo $CM->displaySectionQuestionsComboBox($_POST['sectionType'], $_POST['functionType']);

@@ -17,9 +17,9 @@ Date: 01/21/2016
 
 require_once('config.php');
 // Create a 'CheckListManager'
-require_once('CheckListManager.php');
+require_once('handler/CheckListManager.php');
 $CM = new CheckListManager();
-$CM->initializeJSONData(JSON_FILE);
+$CM->initializeJSONData("data/".JSON_FILE);
 
 ?>
 
@@ -52,7 +52,7 @@ If it does, Modernizr will replace this class with just js. -->
             <div style="height: 50px"></div> <!-- SPACER -->
             <label for="list">Check List Type</label>
 
-            <select name="list">
+            <select name="list" id="list">
                 <?php
                 foreach($CM->listTypes as $key => $value) {
                 ?>
@@ -62,10 +62,13 @@ If it does, Modernizr will replace this class with just js. -->
                 ?>
             </select>
 
-            <button class="btn btn-info" type="submit" name="submit">Load List!</button></br></br>
+            <button class="btn btn-info" type="submit" name="submit">Load List!</button>
+            <button class="btn btn-primary" type="button" id="dumpJSON">Dump JSON File</button>
+            </br></br>
             <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#add">Add Question</button>
             <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#update">Update Question</button>
             <button class="btn btn-danger" type="button" data-toggle="modal" data-target="#delete">Delete Question</button>
+
 
             <!-- <div id="parent-list">
 	               <select id="select-1">

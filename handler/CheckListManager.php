@@ -15,7 +15,7 @@ http://stackoverflow.com/questions/2904131/what-is-the-difference-between-json-a
 
 */
 
-require __DIR__ . '/vendor/autoload.php';
+require '/var/www/html/checkmate/vendor/autoload.php';
 
 class CheckListManager {
 
@@ -23,6 +23,7 @@ class CheckListManager {
     private $listType;                  # The current list type
     private $rootTypes;                 # The current root level list from the JSON file
     private $jsonFile;                  # Holds the filename of the JSON file
+    private $jsonFileOutput;            # Filename that will hold the saved output
     private $jsonArray;                 # Holds the JSON data as an associative array
     private $sectionHeader;             # Holds the current section name ' String '
     private $additionalQuestions;       # Boolean value
@@ -31,6 +32,8 @@ class CheckListManager {
 
     public function __construct()
     {
+        require_once('/var/www/html/checkmate/config.php');
+        $this->jsonFileOutput = JSON_FILE_OUTPUT;
         $this->debug = false;
         $this->rootTypes = array('l0' => 'BE', 'l1' => 'SD', 'l2' => 'ID', 'l3' => 'TH',
                            'l4' => 'FI', 'l5' => 'SA', 'l6' => 'AU');
@@ -150,13 +153,14 @@ class CheckListManager {
 
     public function addQuestion($list, $section, $questionBefore, $questionAfter, $newQuestion) {
 
+
         // Load the questions from the corresponding section into a new variable
         $questions = $this->getQuestionArray($list, $section);
         // Used with array_splice later in the function
         $origQuestionCount = count($questions['questionArray']);
 
         // Set a default question structure to be loaded and inserted ( Only used as a template )
-        $insertQuestion = $this->jsonArray[l0]['sections'][0]['questions'][0];
+        $insertQuestion = $this->jsonArray['l0']['sections'][0]['questions'][0];
 
         // Load the question with the passed in values
         $insertQuestion['id'] = $questionBefore + 1;
@@ -186,23 +190,25 @@ class CheckListManager {
                 $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
         }
 
-        // Put the array of altered questions back into the original JSON array
-        array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
-                     0,
-                     count($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
-                     $questions['questionArray']);
+        // // Put the array of altered questions back into the original JSON array
+        // array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
+        //              0,
+        //              count($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
+        //              $questions['questionArray']);
+        //
+        // // var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
+        //
+        // // Put the array back into the JSON file and call it 'update.json'
+        // $jsonString = json_encode($this->jsonArray);
+        //
+        // if(!file_put_contents("update.json", $jsonString, FILE_USE_INCLUDE_PATH)) {
+        //     echo '<h2 class="text-center">Could not create a JSON file</h2>';
+        // } else {
+        //     echo '<h2 class="text-center">Updated JSON file successfully</h2>';
+        // }
 
-        // var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
-
-        // Put the array back into the JSON file and call it 'update.json'
-        $jsonString = json_encode($this->jsonArray);
-        echo $jsonString;
-
-        if(!file_put_contents("update.json", $jsonString, FILE_USE_INCLUDE_PATH)) {
-            echo '<h2 class="text-center">Could not create a JSON file</h2>';
-        } else {
-            echo '<h2 class="text-center">Updated JSON file successfully</h2>';
-        }
+        // Save to a JSON file
+        $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
 
     }
 
@@ -225,7 +231,6 @@ class CheckListManager {
 
 
     public function updateQuestion($list, $section, $questionToUpdate, $updateString) {
-        echo "Update function";
 
         // Get questions
         $questions = $this->getQuestionArray($list, $section);
@@ -234,7 +239,7 @@ class CheckListManager {
         $questions['questionArray'][$questionToUpdate]['output'] = $updateString;
 
         // Save to a JSON file
-        $this->saveToJson($this->jsonArray, 'update.json', $questions, $section);
+        $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
 
     }
 
@@ -365,7 +370,7 @@ class CheckListManager {
 
         $DOT_SPACING = ".....";
         $sectionQuestions = $this->getSectionQuestions($sectionHeaderIndex);
-
+        $questionComboBox = null;
 
         // Loop and create a single comboBox filled with the required questions of the desired section
         foreach($sectionQuestions as $questionId => $question) {

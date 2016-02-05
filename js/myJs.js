@@ -14,6 +14,24 @@ $( document ).ready(function() {
     var LABEL_QUESTION = 'labelQuestionComboBox';
     var LABEL_NEW_QUESTION = 'labelNewQuestion';
 
+    $("#dumpJSON").click(function() {
+      var listId = document.getElementById('list').value;
+
+      $.ajax({
+          url: "utility/dumpJSON.php",                     // Script to call
+          type: 'post',
+          data: {
+            listType: listId
+          },                                         // Data sending method
+          success: function(result){
+              console.log("[ INFO ]: JSON Dump");                                // What to do if it's successful
+              $('body').append(result);        // Clear previous and append
+          },
+          error: function(result){
+              alert('DUMP failed');
+          }
+      });
+    })
 
     // Event Delegation done through this DIV container for all Combo Boxes
     $("#"+COMBO_BOX_CONTAINER_ADD)
@@ -103,7 +121,7 @@ $( document ).ready(function() {
                         data: {
                           sectionType: listId,
                           functionType: targetDivId                 // Determine what function ( ADD, UPDATE or DELETE )
-                        },                                             
+                        },
                         success: function(result){                     // What to do if it's successful
                             $('#' + targetDivId).append(result);
                         },
