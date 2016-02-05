@@ -15,9 +15,7 @@ Date: 01/21/2016
 */
 
 
-// The JSON checklist file
-define('JSON_FILE', 'Checklists.json');
-
+require_once('config.php');
 // Create a 'CheckListManager'
 require_once('CheckListManager.php');
 $CM = new CheckListManager();
@@ -215,18 +213,12 @@ if(isset($_POST['submit'])) {
   $chosenList = $_POST['list'];
 
   if(isset($_POST['questionAdd'])) {
-    //   echo 'List: '.$chosenList;
-    //   echo 'Section: '.$_POST['section'];
-    //   echo 'Question Before Value: '.$_POST['questionBefore'];
-    //   echo 'Question After Value: '.$_POST['questionAfter'];
-    //   echo 'New Question: '.$_POST['questionAdd'];
+
       $CM->addQuestion($chosenList, $_POST['section'], $_POST['questionBefore'], $_POST['questionAfter'], $_POST['questionAdd']);
   } elseif (isset($_POST['questionUpdate'])) {
-      echo " update executed";
       // Choose List Type, Choose Section, Choose Question
-      $CM->updateQuestion($chosenList, $_POST['section'], $_POST['questionUpdate']);
+      $CM->updateQuestion($chosenList, $_POST['section'], $_POST['questionUpdate'], $_POST['updateString']);
   } elseif(isset($_POST['questionDelete'])) {
-      echo " delete executed";
       // Choose List Type, Choose Section, Choose Question
       $CM->deleteQuestion($chosenList, $_POST['section'], $_POST['questionDelete']);
   } else {

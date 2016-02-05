@@ -19,7 +19,6 @@ require __DIR__ . '/vendor/autoload.php';
 
 class CheckListManager {
 
-
     private $listTypes;                 # An array that holds the type of lists in the JSON file
     private $listType;                  # The current list type
     private $rootTypes;                 # The current root level list from the JSON file
@@ -188,17 +187,12 @@ class CheckListManager {
         }
 
         // Put the array of altered questions back into the original JSON array
-        //var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
-
         array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
                      0,
                      count($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
                      $questions['questionArray']);
 
-        var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
-        //var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
-        // $this->jsonArray[$rootLevel]['sections'][$section]['questions'] = $questionArray;
-        // var_dump($this->jsonArray[$rootLevel]['sections'][$section]['questions']);
+        // var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
 
         // Put the array back into the JSON file and call it 'update.json'
         $jsonString = json_encode($this->jsonArray);
@@ -213,20 +207,83 @@ class CheckListManager {
     }
 
     public function deleteQuestion($list, $section, $questionToDelete) {
-        echo "Delete function";
-        $questionArray = $this->getQuestionArray($list, $section);
-        // var_dump($questionArray);
+
+        $questions = $this->getQuestionArray($list, $section);
+
+        // Remove the question from the array
+        unset($questions['questionArray'][$questionToDelete]);
+        // Reset the index values
+        $questions['questionArray'] = array_values($questions['questionArray']);
+
+        // Reset the IDs for every question below the removed question ( Minus 1 )
+        $this->resetQuestionIds($questions, $questionToDelete, "decrement");
+
+        // Save to a JSON file
+        $this->saveToJson($this->jsonArray, 'update.json', $questions, $section);
 
     }
 
 
-    public function updateQuestion($list, $section, $questionToUpdate) {
+    public function updateQuestion($list, $section, $questionToUpdate, $updateString) {
         echo "Update function";
 
         // Get questions
-        $questionArray = $this->getQuestionArray($list, $section);
+        $questions = $this->getQuestionArray($list, $section);
 
+        // Update the question output
+        $questions['questionArray'][$questionToUpdate]['output'] = $updateString;
 
+        // Save to a JSON file
+        $this->saveToJson($this->jsonArray, 'update.json', $questions, $section);
+
+    }
+
+    // $resetType => "increment" or "decrement".  Step by 1
+    private function resetQuestionIds(&$questions, $offset, $resetType) {
+
+      /*
+          -Have to get the number of elements after the inserted question
+
+              - Get the total number of elements from the altered array ( After add/update/delete )
+              - Subtract the total number from the offset value
+              - This value should be the remaining elements after the target question
+
+          -Have to loop only through those elements and increment their ID by 1
+
+              Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
+      */
+        $totalQuestionCount = count($questions['questionArray']);
+        $remainingElements = $totalQuestionCount - $offset;
+
+        for($i = $offset; $i < $remainingElements; ++$i) {
+                if($resetType == "increment") {
+                    $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
+                } else {
+                    $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] - 1;
+                }
+        }
+    }
+
+    // Splices questions back into the jsonArray and saves them to a file
+    private function saveToJson(&$jsonArray, $jsonFilename, $questions, $section) {
+
+        // Put the array of altered questions back into the original JSON array
+        array_splice($jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
+                     0,
+                     count($jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
+                     $questions['questionArray']);
+
+        // Encode the associative array into a JSON string
+        $jsonString = json_encode($this->jsonArray);
+
+        if(!file_put_contents(JSON_FILE_OUTPUT, $jsonString, FILE_USE_INCLUDE_PATH)) {
+            echo '<h2 class="text-center">Could not create a JSON file</h2>';
+        } else {
+            echo '<h2 class="text-center">Updated JSON file successfully</h2>';
+        }
+
+        // Output to the screen to review
+        var_dump($jsonArray[$questions['rootLevel']]['sections'][$section]['questions']);
     }
 
 
@@ -345,12 +402,12 @@ class CheckListManager {
             ?>
 
             <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Update which question?</label>
-            <select name="questions" id="questionCombobox_Update">
+            <select name="questionUpdate" id="questionCombobox_Update">
                 <?php echo $questionComboBox; ?>
             </select>
 
             <label class="show" for="questionUpdate" id="labelNewQuestion">Enter Update:</label>
-            <input type="text" name="questionUpdate" id="newUpdate" />
+            <input type="text" name="updateString" id="newUpdate" />
 
             <?php
             break;
