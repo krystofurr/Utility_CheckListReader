@@ -245,20 +245,9 @@ class CheckListManager {
 
     }
 
-    // $resetType => "increment" or "decrement".  Step by 1
+    // Cycles through the altered list of questions and updates all IDs
     private function resetQuestionIds(&$questions) {
 
-      /*
-          -Have to get the number of elements after the inserted question
-
-              - Get the total number of elements from the altered array ( After add/update/delete )
-              - Subtract the total number from the offset value
-              - This value should be the remaining elements after the target question
-
-          -Have to loop only through those elements and increment their ID by 1
-
-              Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
-      */
         // $totalQuestionCount = count($questions['questionArray']);
         // $remainingElements = $totalQuestionCount - $offset;
 
