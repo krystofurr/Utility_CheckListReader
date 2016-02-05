@@ -133,9 +133,7 @@ class CheckListManager {
     // GET QUESTION NAME $this->document->getValue("#/l0/sections/0/questions/0/output");
 
 
-
-    public function addQuestion($list, $section, $questionBefore, $questionAfter, $newQuestion) {
-
+    private function getQuestionArray($list, $section) {
         $rootLevel = "";
         // Check what root level is required ( l0, l1, l2, ...)
         foreach($this->rootTypes as $key => $value) {
@@ -147,6 +145,17 @@ class CheckListManager {
         // Load the questions from the corresponding section into a new variable
         $questionArray = $this->jsonArray[$rootLevel]['sections'][$section]['questions'];
 
+        // Need both root level and the question array to complete the changes for JSON list
+        return $result = array("rootLevel"=>$rootLevel, "questionArray"=>$questionArray);
+    }
+
+    public function addQuestion($list, $section, $questionBefore, $questionAfter, $newQuestion) {
+
+        // Load the questions from the corresponding section into a new variable
+        $questions = $this->getQuestionArray($list, $section);
+        // Used with array_splice later in the function
+        $origQuestionCount = count($questions['questionArray']);
+
         // Set a default question structure to be loaded and inserted ( Only used as a template )
         $insertQuestion = $this->jsonArray[l0]['sections'][0]['questions'][0];
 
@@ -155,7 +164,7 @@ class CheckListManager {
         $insertQuestion['output'] = $newQuestion;
 
         // Insert the question into the JSON array ( Have to define that it is an array in order to insert correctly)
-        array_splice($questionArray, $questionBefore + 1, 0, array($insertQuestion));
+        array_splice($questions['questionArray'], $questionBefore + 1, 0, array($insertQuestion));
 
         // Update every question Id after the inserted question and increment by 1
 
@@ -171,36 +180,52 @@ class CheckListManager {
                 Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
         */
 
-        $totalCount = count($questionArray);
+        $totalCount = count($questions['questionArray']);
         $remainingElementCount = $totalCount - ($questionBefore + 1);
 
         for($i = ($questionAfter + 1); $i <= $remainingElementCount; ++$i) {
-                // echo "</br>Question Before".$questionArray[$i]['id'].'</br>';
-                // echo "</br>Question After".($questionArray[$i]['id'] + 1).'</br>';
-                $questionArray[$i]['id'] = $questionArray[$i]['id'] + 1;
+                $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
         }
 
-        // Put the array of altered questions back into the original JSON array ( Reverse of the above )
-        $this->jsonArray[$rootLevel]['sections'][$section]['questions'] = $questionArray;
+        // Put the array of altered questions back into the original JSON array
+        //var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
 
-        // var_dump($questionArray);
+        array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
+                     0,
+                     count($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
+                     $questions['questionArray']);
 
-        //var_dump($this->jsonArray[$rootLevel]['sections'][$section]['questions']);
+        var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
+        //var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
+        // $this->jsonArray[$rootLevel]['sections'][$section]['questions'] = $questionArray;
+        // var_dump($this->jsonArray[$rootLevel]['sections'][$section]['questions']);
 
         // Put the array back into the JSON file and call it 'update.json'
         $jsonString = json_encode($this->jsonArray);
+        echo $jsonString;
 
         if(!file_put_contents("update.json", $jsonString, FILE_USE_INCLUDE_PATH)) {
-            echo "Could not create a JSON file";
+            echo '<h2 class="text-center">Could not create a JSON file</h2>';
+        } else {
+            echo '<h2 class="text-center">Updated JSON file successfully</h2>';
         }
 
     }
 
-    public function deleteQuestion() {
+    public function deleteQuestion($list, $section, $questionToDelete) {
+        echo "Delete function";
+        $questionArray = $this->getQuestionArray($list, $section);
+        // var_dump($questionArray);
 
     }
 
-    public function updateQuestion() {
+
+    public function updateQuestion($list, $section, $questionToUpdate) {
+        echo "Update function";
+
+        // Get questions
+        $questionArray = $this->getQuestionArray($list, $section);
+
 
     }
 
@@ -279,36 +304,70 @@ class CheckListManager {
         Accepts the Id of the section to find all questions related to that section
 
     */
-    public function displaySectionQuestionsComboBox($sectionHeaderIndex) {
+    public function displaySectionQuestionsComboBox($sectionHeaderIndex, $functionType) {
+
         $DOT_SPACING = ".....";
+        $sectionQuestions = $this->getSectionQuestions($sectionHeaderIndex);
 
-        ?>
-        <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Between which questions?</label>
 
-          <?php
-          $sectionQuestions = $this->getSectionQuestions($sectionHeaderIndex);
-          foreach($sectionQuestions as $questionId => $question) {
-              if(strlen($question) >= 50) { $question = substr($question, 0, 50).$DOT_SPACING; }
+        // Loop and create a single comboBox filled with the required questions of the desired section
+        foreach($sectionQuestions as $questionId => $question) {
+            if(strlen($question) >= 50) { $question = substr($question, 0, 50).$DOT_SPACING; }
 
-              $questionCombobox_Before .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
-              $questionCombobox_After .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
 
-          }
-          ?>
+            $questionComboBox .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
+            // $questionCombobox_After .= '<option value='.$questionId.'>'.($questionId + 1).'.'.$question.'</option>';
 
-        <select name="questionBefore" id="questionCombobox_Before">
-            <?php echo $questionCombobox_Before; ?>
-        </select>
+        }
 
-        <select name="questionAfter" id="questionCombobox_After">
-            <?php echo $questionCombobox_After; ?>
-        </select>
+        // SWITCH - Change output based on the function required ( User clicked on Add, Update or Delete )
+        switch($functionType) {
 
-        <label class="show" for="questionAdd" id="labelNewQuestion">New Question:</label>
-        <input type="text" name="questionAdd" id="newQuestion" />
-        <?php
+          // Requires two comboBoxes and a textfield
+          case "comboBoxContainerAdd":
+            ?>
+                <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Between which questions?</label>
+                <select name="questionBefore" id="questionCombobox_Before">
+                    <?php echo $questionComboBox; ?>
+                </select>
+
+                <select name="questionAfter" id="questionCombobox_After">
+                    <?php echo $questionComboBox; ?>
+                </select>
+
+                <label class="show" for="questionAdd" id="labelNewQuestion">New Question:</label>
+                <input type="text" name="questionAdd" id="newQuestion" />
+
+            <?php
+            break;
+          // Requires one comboBox and a textfield
+          case "comboBoxContainerUpdate":
+            ?>
+
+            <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Update which question?</label>
+            <select name="questions" id="questionCombobox_Update">
+                <?php echo $questionComboBox; ?>
+            </select>
+
+            <label class="show" for="questionUpdate" id="labelNewQuestion">Enter Update:</label>
+            <input type="text" name="questionUpdate" id="newUpdate" />
+
+            <?php
+            break;
+          // Requires one comboBox and a textfield
+          case "comboBoxContainerDelete":
+            ?>
+
+            <label class="show labelSpacing" for="questions" id="labelQuestionComboBox">Delete which question?</label>
+            <select name="questionDelete" id="questionCombobox_Delete">
+                <?php echo $questionComboBox; ?>
+            </select>
+
+            <?php
+            break;
+
+        }
     }
-
 }
 
 

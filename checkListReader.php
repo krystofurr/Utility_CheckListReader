@@ -66,8 +66,8 @@ If it does, Modernizr will replace this class with just js. -->
 
             <button class="btn btn-info" type="submit" name="submit">Load List!</button></br></br>
             <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#add">Add Question</button>
-            <button class="btn btn-primary" type="button" name="update">Update Question</button>
-            <button class="btn btn-danger" type="button" name="delete">Delete Question</button>
+            <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#update">Update Question</button>
+            <button class="btn btn-danger" type="button" data-toggle="modal" data-target="#delete">Delete Question</button>
 
             <!-- <div id="parent-list">
 	               <select id="select-1">
@@ -93,7 +93,7 @@ If it does, Modernizr will replace this class with just js. -->
         </div>
     </form>
     <form action="checkListReader.php" method="post">
-        <!-- PLACE THE MODALS FOR THE ADD, UPDATE AND DELETE buttons -->
+    <!-- PLACE THE MODALS FOR THE ADD, UPDATE AND DELETE buttons -->
 
         <!-- ADD MODAL -->
         <div id="add" class="modal fade" role="dialog">
@@ -106,7 +106,8 @@ If it does, Modernizr will replace this class with just js. -->
                 <h4 class="modal-title">ADD QUESTION</h4>
               </div>
               <div class="modal-body">
-                  <div id="comboBoxContainer">
+
+                  <div id="comboBoxContainerAdd">
                         <label for="list">Choose a list type:</label>
                         <select id="listCombobox" name="list">
                           <?php
@@ -118,6 +119,7 @@ If it does, Modernizr will replace this class with just js. -->
                           ?>
                         </select>
                    </div>
+
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-primary" name="submit">Save</button>
@@ -128,8 +130,11 @@ If it does, Modernizr will replace this class with just js. -->
           </div>
         </div>
 
+    </form>
+    <form action="checkListReader.php" method="post">
+
         <!-- UPDATE MODAL -->
-        <div id="add" class="modal fade" role="dialog">
+        <div id="update" class="modal fade" role="dialog">
           <div class="modal-dialog">
 
             <!-- Modal content-->
@@ -140,9 +145,22 @@ If it does, Modernizr will replace this class with just js. -->
               </div>
               <div class="modal-body">
 
+                <div id="comboBoxContainerUpdate">
+                      <label for="list">Choose a list type:</label>
+                      <select id="listCombobox" name="list">
+                        <?php
+                        foreach($CM->listTypes as $listId => $value) {
+                        ?>
+                            <option value="<?php echo $value; ?>"><?php echo $listId; ?></option>
+                        <?php
+                        }
+                        ?>
+                      </select>
+                 </div>
+
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" name="submitDelete">Save</button>
+                <button type="submit" class="btn btn-warning" name="submit">Update</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               </div>
             </div>
@@ -150,8 +168,11 @@ If it does, Modernizr will replace this class with just js. -->
           </div>
         </div>
 
+      </form>
+      <form action="checkListReader.php" method="post">
+
         <!-- DELETE MODAL -->
-        <div id="add" class="modal fade" role="dialog">
+        <div id="delete" class="modal fade" role="dialog">
           <div class="modal-dialog">
 
             <!-- Modal content-->
@@ -162,9 +183,22 @@ If it does, Modernizr will replace this class with just js. -->
               </div>
               <div class="modal-body">
 
+                <div id="comboBoxContainerDelete">
+                      <label for="list">Choose a list type:</label>
+                      <select id="listCombobox" name="list">
+                        <?php
+                        foreach($CM->listTypes as $listId => $value) {
+                        ?>
+                            <option value="<?php echo $value; ?>"><?php echo $listId; ?></option>
+                        <?php
+                        }
+                        ?>
+                      </select>
+                 </div>
+
               </div>
               <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" name="submit">Save</button>
+                <button type="submit" class="btn btn-danger" name="submit">Delete</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               </div>
             </div>
@@ -187,10 +221,14 @@ if(isset($_POST['submit'])) {
     //   echo 'Question After Value: '.$_POST['questionAfter'];
     //   echo 'New Question: '.$_POST['questionAdd'];
       $CM->addQuestion($chosenList, $_POST['section'], $_POST['questionBefore'], $_POST['questionAfter'], $_POST['questionAdd']);
-  } elseif (isset($_POST['update'])) {
-      $CM->updateQuestion($chosenList);
-  } elseif(isset($_POST['delete'])) {
-      $CM->deleteQuestion($chosenList);
+  } elseif (isset($_POST['questionUpdate'])) {
+      echo " update executed";
+      // Choose List Type, Choose Section, Choose Question
+      $CM->updateQuestion($chosenList, $_POST['section'], $_POST['questionUpdate']);
+  } elseif(isset($_POST['questionDelete'])) {
+      echo " delete executed";
+      // Choose List Type, Choose Section, Choose Question
+      $CM->deleteQuestion($chosenList, $_POST['section'], $_POST['questionDelete']);
   } else {
       foreach($CM->listTypes as $key => $value ) {
           if($chosenList == $value) { $CM->listType = $chosenList; }

@@ -2,7 +2,9 @@
 $( document ).ready(function() {
     console.log( "jQuery ready!" );
 
-    var COMBO_BOX_CONTAINER = "comboBoxContainer";
+    var COMBO_BOX_CONTAINER_ADD = "comboBoxContainerAdd";
+    var COMBO_BOX_CONTAINER_UPDATE = "comboBoxContainerUpdate";
+    var COMBO_BOX_CONTAINER_DELETE = "comboBoxContainerDelete";
     var COMBO_BOX_LIST = 'listCombobox';
     var COMBO_BOX_SECTION = 'sectionCombobox';
     var LABEL_SECTION = 'labelSectionComboBox';
@@ -14,9 +16,13 @@ $( document ).ready(function() {
 
 
     // Event Delegation done through this DIV container for all Combo Boxes
-    $("#"+COMBO_BOX_CONTAINER).click(function(event) {
+    $("#"+COMBO_BOX_CONTAINER_ADD)
+        .add("#"+COMBO_BOX_CONTAINER_UPDATE)
+        .add("#"+COMBO_BOX_CONTAINER_DELETE)
+        .click(function(event) {
 
-        var isOption, comboBoxId, payload;
+
+        var isOption, targetDivId, comboBoxId, payload;
         // Check for browser type because drop downs behave differently with click events
         if(bowser.chrome == true) {
             console.log("[ INFO ]: Browser Type: Google Chrome");
@@ -24,14 +30,15 @@ $( document ).ready(function() {
             var target = $( event.target );
             isOption = target.children()[0].nodeName;
             comboBoxId = target.context.id;
-            // CAN'T FIGURE OUT HOW TO DEFINE THE TARGET DROP DOWN ITEM IN CHROME HERE <============
-            payload = target[0].value;
+            targetDivId = event.currentTarget.id;
+            listId = target[0].value;
 
         } else if(bowser.firefox == true) {
             console.log("[ INFO ]: Browser Type: Mozilla Firefox");
             isOption = event.target.nodeName;
             comboBoxId = event.target.parentNode.id;
-            payload = event.target.value;
+            targetDivId = event.currentTarget.id;
+            listId =  event.target.value;
 
         } else {
             console.log("[ INFO ]: Browser Type: Other");
@@ -60,12 +67,14 @@ $( document ).ready(function() {
                     }
 
                     $.ajax({
-                        url: "combobox/sectionHeaders.php",             // Script to call
-                        type: 'post',                                   // Data sending method
-                        data: { listType: payload },         // Payload
+                        url: "combobox/sectionHeaders.php",                     // Script to call
+                        type: 'post',                                           // Data sending method
+                        data: {
+                          listType: listId
+                        },                                           // Data to send
                         success: function(result){
-                            console.log(result);                     // What to do if it's successful
-                            $('#' + COMBO_BOX_CONTAINER).append(result);         // Clear previous and append
+                            console.log(result);                                // What to do if it's successful
+                            $('#' + targetDivId).append(result);        // Clear previous and append
                         },
                         error: function(result){
                             alert('ajax failed');
@@ -91,9 +100,12 @@ $( document ).ready(function() {
                     $.ajax({
                         url: "combobox/sectionQuestions.php",          // Script to call
                         type: 'post',                                  // Data sending method
-                        data: { sectionType: payload },      // Payload
+                        data: {
+                          sectionType: listId,
+                          functionType: targetDivId                 // Determine what function ( ADD, UPDATE or DELETE )
+                        },                                             
                         success: function(result){                     // What to do if it's successful
-                            $('#' + COMBO_BOX_CONTAINER).append(result);
+                            $('#' + targetDivId).append(result);
                         },
                         error: function(result){
                             alert('ajax failed');
