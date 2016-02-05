@@ -39,10 +39,16 @@ $( document ).ready(function() {
         .add("#"+COMBO_BOX_CONTAINER_DELETE)
         .click(function(event) {
 
-
+        // Holds the data for a single question.  Additional question section is 'false' by default
+        var selectedQuestion = {
+            value: "",
+            output: "",
+            additionalQuestions: false
+        };
         var isOption, targetDivId, comboBoxId, payload;
         // Check for browser type because drop downs behave differently with click events
         if(bowser.chrome == true) {
+
             console.log("[ INFO ]: Browser Type: Google Chrome");
             // Use jQuery to convert the target into a collection ( used for Chrome )
             var target = $( event.target );
@@ -95,11 +101,12 @@ $( document ).ready(function() {
                             $('#' + targetDivId).append(result);        // Clear previous and append
                         },
                         error: function(result){
-                            alert('ajax failed');
+                            alert('Sections AJAX request failed');
                         }
                     });
 
                     break;
+                // User chooses a section to display the combo box(s) for questions
                 case COMBO_BOX_SECTION:
                     console.log("CHOSEN: " + COMBO_BOX_SECTION);
 
@@ -126,7 +133,7 @@ $( document ).ready(function() {
                             $('#' + targetDivId).append(result);
                         },
                         error: function(result){
-                            alert('ajax failed');
+                            alert('Questions AJAX request failed');
                         }
                     });
 
