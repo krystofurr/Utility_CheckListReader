@@ -183,12 +183,14 @@ class CheckListManager {
                 Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
         */
 
-        $totalCount = count($questions['questionArray']);
-        $remainingElementCount = $totalCount - ($questionBefore + 1);
+        $this->resetQuestionIds($questions);
 
-        for($i = ($questionAfter + 1); $i <= $remainingElementCount; ++$i) {
-                $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
-        }
+        // $totalCount = count($questions['questionArray']);
+        // $remainingElementCount = $totalCount - ($questionBefore + 1);
+        //
+        // for($i = ($questionAfter + 1); $i <= $remainingElementCount; ++$i) {
+        //         $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
+        // }
 
         // // Put the array of altered questions back into the original JSON array
         // array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
@@ -222,7 +224,7 @@ class CheckListManager {
         $questions['questionArray'] = array_values($questions['questionArray']);
 
         // Reset the IDs for every question below the removed question ( Minus 1 )
-        $this->resetQuestionIds($questions, $questionToDelete, "decrement");
+        $this->resetQuestionIds($questions);
 
         // Save to a JSON file
         $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
@@ -244,7 +246,7 @@ class CheckListManager {
     }
 
     // $resetType => "increment" or "decrement".  Step by 1
-    private function resetQuestionIds(&$questions, $offset, $resetType) {
+    private function resetQuestionIds(&$questions) {
 
       /*
           -Have to get the number of elements after the inserted question
@@ -257,15 +259,18 @@ class CheckListManager {
 
               Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
       */
-        $totalQuestionCount = count($questions['questionArray']);
-        $remainingElements = $totalQuestionCount - $offset;
+        // $totalQuestionCount = count($questions['questionArray']);
+        // $remainingElements = $totalQuestionCount - $offset;
 
-        for($i = $offset; $i < $remainingElements; ++$i) {
-                if($resetType == "increment") {
-                    $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
-                } else {
-                    $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] - 1;
-                }
+        //  This is so we loop through the entire question array and begin at 0 until it's completed.
+        $questionId = -1;
+        for($i = 0; $i < count($questions['questionArray']); ++$i) {
+              $questions['questionArray'][$i]['id'] = ++$questionId;
+                // if($resetType == "increment") {
+                //     $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
+                // } else {
+                //     $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] - 1;
+                // }
         }
     }
 
