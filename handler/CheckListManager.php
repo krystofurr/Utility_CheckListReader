@@ -169,45 +169,7 @@ class CheckListManager {
         // Insert the question into the JSON array ( Have to define that it is an array in order to insert correctly)
         array_splice($questions['questionArray'], $questionBefore + 1, 0, array($insertQuestion));
 
-        // Update every question Id after the inserted question and increment by 1
-
-        /*
-            -Have to get the number of elements after the inserted question
-
-                So...get the total count.  Then subtract the value of the index for the question
-                before the inserted question and add 1.  That should give the remaining elements in
-                the question array.
-
-            -Have to loop only through those elements and increment their ID by 1
-
-                Start after the inserted question ( $questionAfter ).  Need to add 1 due to it being the array index
-        */
-
-        $this->resetQuestionIds($questions);
-
-        // $totalCount = count($questions['questionArray']);
-        // $remainingElementCount = $totalCount - ($questionBefore + 1);
-        //
-        // for($i = ($questionAfter + 1); $i <= $remainingElementCount; ++$i) {
-        //         $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
-        // }
-
-        // // Put the array of altered questions back into the original JSON array
-        // array_splice($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions'],
-        //              0,
-        //              count($this->jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
-        //              $questions['questionArray']);
-        //
-        // // var_dump($this->jsonArray[$questions['rootLevel']]['sections'][$section]);
-        //
-        // // Put the array back into the JSON file and call it 'update.json'
-        // $jsonString = json_encode($this->jsonArray);
-        //
-        // if(!file_put_contents("update.json", $jsonString, FILE_USE_INCLUDE_PATH)) {
-        //     echo '<h2 class="text-center">Could not create a JSON file</h2>';
-        // } else {
-        //     echo '<h2 class="text-center">Updated JSON file successfully</h2>';
-        // }
+        $this->resetQuestionIds($section, $questions);
 
         // Save to a JSON file
         $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
@@ -224,7 +186,7 @@ class CheckListManager {
         $questions['questionArray'] = array_values($questions['questionArray']);
 
         // Reset the IDs for every question below the removed question ( Minus 1 )
-        $this->resetQuestionIds($questions);
+        $this->resetQuestionIds($section, $questions);
 
         // Save to a JSON file
         $this->saveToJson($this->jsonArray, $this->jsonFileOutput, $questions, $section);
@@ -246,21 +208,21 @@ class CheckListManager {
     }
 
     // Cycles through the altered list of questions and updates all IDs
-    private function resetQuestionIds(&$questions) {
+    private function resetQuestionIds($section, &$questions) {
 
-        // $totalQuestionCount = count($questions['questionArray']);
-        // $remainingElements = $totalQuestionCount - $offset;
+        // Holds the total number of questions in a given section
+        $totalQuestionCount = 0;
 
         //  This is so we loop through the entire question array and begin at 0 until it's completed.
         $questionId = -1;
         for($i = 0; $i < count($questions['questionArray']); ++$i) {
               $questions['questionArray'][$i]['id'] = ++$questionId;
-                // if($resetType == "increment") {
-                //     $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] + 1;
-                // } else {
-                //     $questions['questionArray'][$i]['id'] = $questions['questionArray'][$i]['id'] - 1;
-                // }
+              ++$totalQuestionCount;
         }
+
+        // Save the revised number of questions into the jsonArray
+
+        $this->jsonArray[$questions['rootLevel']]['sections'][$section]['amount'] = $totalQuestionCount;
     }
 
     // Splices questions back into the jsonArray and saves them to a file
@@ -271,6 +233,8 @@ class CheckListManager {
                      0,
                      count($jsonArray[$questions['rootLevel']]['sections'][$section]['questions']),
                      $questions['questionArray']);
+
+
 
         // Encode the associative array into a JSON string
         $jsonString = json_encode($this->jsonArray);
