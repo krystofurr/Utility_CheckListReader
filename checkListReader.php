@@ -40,6 +40,9 @@ If it does, Modernizr will replace this class with just js. -->
     <!-- Bowser - A browser detector -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bowser/1.0.0/bowser.js"></script>
 
+    <!-- Clipboard.js -->
+    <script type="text/javascript" src="js/clipboard.min.js"></script>
+
     <script type="text/javascript" src="js/myJs.js"></script>
 
     <link rel="stylesheet" href="css/style.css" media="screen" title="no title" charset="utf-8">
@@ -228,9 +231,11 @@ if(isset($_POST['submit'])) {
       foreach($CM->listTypes as $key => $value ) {
           if($chosenList == $value) { $CM->listType = $chosenList; }
       }
+      ?></br><button style="display:block; margin: 0 auto;" id="copyButton" data-clipboard-target="#fullQuestionList">Copy to Clipboard</button></br>
+      <div id="fullQuestionList" style="width: 75%; margin-top: 10px; margin-left: auto; margin-right: auto; border: solid black 2px; padding: 1%;"><?php
 
-
-      $CM->displayQuestions($CM->listType);
+        $CM->displayQuestions($CM->listType);
+      ?></div><?php
   }
 }
 ?>

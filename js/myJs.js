@@ -2,6 +2,10 @@
 $( document ).ready(function() {
     console.log( "jQuery ready!" );
 
+    // Instantiate Clipboard.js
+    new Clipboard('#copyButton');
+
+    // Constants to use with the ajax drop boxes
     var COMBO_BOX_CONTAINER_ADD = "comboBoxContainerAdd";
     var COMBO_BOX_CONTAINER_UPDATE = "comboBoxContainerUpdate";
     var COMBO_BOX_CONTAINER_DELETE = "comboBoxContainerDelete";
